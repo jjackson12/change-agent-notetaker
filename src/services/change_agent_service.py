@@ -2,6 +2,7 @@
 Change Agent API integration service.
 Handles AI summarization using the custom Change Agent API.
 """
+
 import httpx
 from typing import Dict, Any, List
 import logging
@@ -9,17 +10,18 @@ from ..config import settings
 
 logger = logging.getLogger(__name__)
 
+
 class ChangeAgentService:
     """Service for interacting with Change Agent API"""
-    
+
     @staticmethod
     def get_participant_color(index: int) -> str:
         """
         Get consistent color class for a participant
-        
+
         Args:
             index: Participant index
-            
+
         Returns:
             Tailwind color class string
         """
@@ -32,44 +34,43 @@ class ChangeAgentService:
             "bg-indigo-50 text-indigo-900",
         ]
         return colors[index % len(colors)]
-    
+
     @staticmethod
     async def generate_meeting_summary(
-        transcript: List[Dict[str, Any]],
-        participants: List[str]
+        transcript: List[Dict[str, Any]], participants: List[str]
     ) -> Dict[str, Any]:
         """
         Generate AI meeting summary using Change Agent API
-        
+
         Args:
             transcript: List of transcript segments
             summary: List of participant names
-            
+
         Returns:
             Dict containing structured summary with segments and participants
-            
+
         # TODO: Implement actual Change Agent API integration
         # For now, this is a placeholder that needs to be connected to your custom API
         """
         if not transcript:
             raise ValueError("Transcript is required for summary generation")
-        
+
         # Generate consistent colors for participants
         participant_colors = [
             {
                 "name": participant,
                 "id": participant.lower().replace(" ", "_"),
-                "colorClass": ChangeAgentService.get_participant_color(index)
+                "colorClass": ChangeAgentService.get_participant_color(index),
             }
             for index, participant in enumerate(participants)
         ]
-        
+
         # Convert transcript to text format
         transcript_text = "\n".join(
             f"{seg.get('name', 'Speaker')}: {seg.get('words', '')}"
             for seg in transcript
         )
-        
+
         # TODO: Replace this with actual Change Agent API call
         # Example structure of what the API should return:
         """
@@ -86,7 +87,7 @@ class ChangeAgentService:
             "participants": participant_colors
         }
         """
-        
+
         # Placeholder implementation - generate basic summary
         try:
             # TODO: Make actual API call to Change Agent
@@ -105,34 +106,35 @@ class ChangeAgentService:
             #     )
             #     response.raise_for_status()
             #     return response.json()
-            
+
             # For now, return a basic structured summary
-            logger.warning("Using placeholder summary - Change Agent API not yet implemented")
-            
-            summary_content = [
-                {"type": "text", "content": "Meeting summary: "}
-            ]
-            
+            logger.warning(
+                "Using placeholder summary - Change Agent API not yet implemented"
+            )
+
+            summary_content = [{"type": "text", "content": "Meeting summary: "}]
+
             # Add participants
             for i, participant in enumerate(participants[:3]):  # First 3 participants
                 if i > 0:
                     summary_content.append({"type": "text", "content": ", "})
-                summary_content.append({
-                    "type": "participant",
-                    "content": participant,
-                    "participantId": participant.lower().replace(" ", "_")
-                })
-            
-            summary_content.append({
-                "type": "text",
-                "content": " discussed various topics during this meeting."
-            })
-            
-            return {
-                "content": summary_content,
-                "participants": participant_colors
-            }
-            
+                summary_content.append(
+                    {
+                        "type": "participant",
+                        "content": participant,
+                        "participantId": participant.lower().replace(" ", "_"),
+                    }
+                )
+
+            summary_content.append(
+                {
+                    "type": "text",
+                    "content": " discussed various topics during this meeting.",
+                }
+            )
+
+            return {"content": summary_content, "participants": participant_colors}
+
         except Exception as e:
             logger.error(f"Error generating meeting summary: {e}")
             raise

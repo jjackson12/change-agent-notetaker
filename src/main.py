@@ -7,15 +7,14 @@ from src.config import settings
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="AI Notetaker API",
     description="Backend API for AI-powered meeting transcription and note-taking",
-    version="1.0.0"
+    version="1.0.0",
 )
 
 # Middleware
@@ -35,23 +34,27 @@ app.include_router(meeting_bots.router, prefix="/api", tags=["bots"])
 app.include_router(calendar.router, prefix="/api/calendar", tags=["calendar"])
 app.include_router(webhooks.router, prefix="/api", tags=["webhooks"])
 
+
 @app.get("/")
 async def root():
     return {
         "message": "Welcome to the AI Notetaker API",
         "version": "1.0.0",
-        "docs": "/docs"
+        "docs": "/docs",
     }
+
 
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
 
 # Database initialization
 @app.on_event("startup")
 async def startup_event():
     logger.info("Starting AI Notetaker API...")
     logger.info("API documentation available at /docs")
+
 
 @app.on_event("shutdown")
 async def shutdown_event():
