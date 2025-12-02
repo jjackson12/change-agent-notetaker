@@ -160,9 +160,7 @@ async def get_meeting_bot_status(meeting_id: int, db: Session = Depends(get_db))
         raise HTTPException(status_code=404, detail="Meeting not found")
 
     if not meeting.bot_id:
-        raise HTTPException(
-            status_code=400, detail="Meeting has no associated bot"
-        )
+        raise HTTPException(status_code=400, detail="Meeting has no associated bot")
 
     try:
         is_in_meeting = await RecallService.is_bot_in_meeting(meeting.bot_id)
