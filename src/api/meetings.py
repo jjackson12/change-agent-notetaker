@@ -136,6 +136,48 @@ async def generate_summary(meeting_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Failed to generate summary")
 
 
+@router.get("/{meeting_id}/bot-status")
+async def get_meeting_bot_status(meeting_id: int, db: Session = Depends(get_db)):
+    """
+    Check if the bot for a specific meeting is currently in the meeting
+
+    This endpoint retrieves the meeting's bot_id and queries Recall.ai
+    to check if the bot is actively in a call.
+
+    Returns:
+        Dict with meeting_id, bot_id, and in_meeting status
+
+    Example response:
+        {
+            "meeting_id": 123,
+            "bot_id": "abc123",
+            "in_meeting": true
+        }
+    """
+    meeting = db.query(Meeting).filter(Meeting.id == meeting_id).first()
+
+    if not meeting:
+        raise HTTPException(status_code=404, detail="Meeting not found")
+
+    if not meeting.bot_id:
+        raise HTTPException(
+            status_code=400, detail="Meeting has no associated bot"
+        )
+
+    try:
+        is_in_meeting = await RecallService.is_bot_in_meeting(meeting.bot_id)
+        return {
+            "meeting_id": meeting_id,
+            "bot_id": meeting.bot_id,
+            "in_meeting": is_in_meeting,
+        }
+    except Exception as e:
+        logger.error(f"Failed to check bot status for meeting {meeting_id}: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to check bot status: {str(e)}"
+        )
+
+
 @router.delete("/{meeting_id}")
 def delete_meeting(meeting_id: int, db: Session = Depends(get_db)):
     """

@@ -73,6 +73,40 @@ class RecallService:
             return response.json()
 
     @staticmethod
+    async def is_bot_in_meeting(bot_id: str) -> bool:
+        """
+        Check if a bot is currently in a meeting
+
+        Args:
+            bot_id: The Recall.ai bot ID
+
+        Returns:
+            True if the bot is currently in a meeting, False otherwise
+
+        Note:
+            This checks the bot's status_changes field to determine if it's
+            currently in the "in_call_not_recording" or "in_call_recording" state
+        """
+        try:
+            bot_data = await RecallService.retrieve_bot_data(bot_id)
+            
+            # Check the current status from status_changes
+            status_changes = bot_data.get("status_changes", [])
+            if not status_changes:
+                return False
+            
+            # Get the most recent status (last item in the list)
+            current_status = status_changes[-1].get("code")
+            
+            # Bot is in meeting if status is in_call_not_recording or in_call_recording
+            in_meeting_statuses = ["in_call_not_recording", "in_call_recording"]
+            return current_status in in_meeting_statuses
+            
+        except Exception as e:
+            logger.error(f"Error checking bot meeting status: {e}")
+            return False
+
+    @staticmethod
     async def extract_transcript(bot_data: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
         Extract and process transcript data from bot data

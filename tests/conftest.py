@@ -1,4 +1,9 @@
 from pytest import fixture
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from src.database import Base, get_db
+from src.main import app
+from fastapi.testclient import TestClient
 
 @fixture(scope="session")
 def test_client():
@@ -40,3 +45,13 @@ def sample_calendar():
     return {
         "user_id": 1
     }
+
+# Import test utilities fixtures
+from tests.test_utils import (
+    test_db,
+    test_client as isolated_test_client,
+    test_user,
+    mock_factory,
+    test_helpers,
+    mock_recall_api
+)

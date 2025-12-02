@@ -101,3 +101,33 @@ async def unschedule_bot(meeting_id: int, db: Session = Depends(get_db)):
     NOTE: This endpoint is not yet implemented.
     """
     raise HTTPException(status_code=501, detail="Un-scheduling not yet implemented")
+
+
+@router.get("/bot-status/{bot_id}")
+async def check_bot_status(bot_id: str):
+    """
+    Check if a bot is currently in a meeting
+
+    This endpoint queries Recall.ai to check the current status of a bot
+    and returns whether it's currently in an active meeting.
+
+    Args:
+        bot_id: The Recall.ai bot ID
+
+    Returns:
+        Dict with bot_id and in_meeting status
+
+    Example response:
+        {
+            "bot_id": "abc123",
+            "in_meeting": true
+        }
+    """
+    try:
+        is_in_meeting = await RecallService.is_bot_in_meeting(bot_id)
+        return {"bot_id": bot_id, "in_meeting": is_in_meeting}
+    except Exception as e:
+        logger.error(f"Failed to check bot status: {e}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to check bot status: {str(e)}"
+        )
