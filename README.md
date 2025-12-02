@@ -315,13 +315,33 @@ alembic upgrade head
 - [ ] Search and filter meetings
 - [ ] Custom AI prompts for summaries
 
+## Testing
+
+Comprehensive testing framework with mocked and real integration tests.
+
+### Quick Start
+```bash
+# Run mocked workflow tests (fast - 3 seconds)
+pytest tests/test_meeting_workflow.py -v
+
+# Run all tests except integration
+pytest tests/ --ignore=tests/test_meeting_workflow_integration.py -v
+
+# See examples
+pytest tests/test_examples.py -v
+```
+
+### Documentation
+- **[Testing Guide](tests/docs/README.md)** - Complete guide & examples
+- **[API Reference](tests/docs/API.md)** - Endpoints & utilities
+
 ## Contributing
 
 Contributions are welcome! Please:
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Add tests
+4. Add tests (see [Testing Documentation](tests/docs/README.md))
 5. Submit a pull request
 
 ## Support
