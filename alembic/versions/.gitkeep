@@ -1,0 +1,3 @@
+# This directory contains database migration files
+# Migrations are automatically generated using:
+# alembic revision --autogenerate -m "description"

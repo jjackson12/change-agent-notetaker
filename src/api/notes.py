@@ -1,33 +1,66 @@
+"""
+Notes endpoints for accessing meeting transcripts and summaries
+
+Notes in this system are generated automatically from meetings.
+The transcripts and AI summaries are the "notes" for each meeting.
+"""
 from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy.orm import Session
 from typing import List
-from ..schemas.note import NoteCreate, NoteRead
-from ..services.note_service import NoteService
-from ..dependencies import get_note_service
+
+from ..database import get_db
+from ..models.meeting import Meeting, MeetingStatus
+from ..schemas.meeting import MeetingResponse
 
 router = APIRouter()
 
-@router.post("/", response_model=NoteRead)
-async def create_note(note: NoteCreate, note_service: NoteService = Depends(get_note_service)):
-    created_note = await note_service.create_note(note)
-    if not created_note:
-        raise HTTPException(status_code=400, detail="Error creating note")
-    return created_note
+@router.get("/", response_model=List[MeetingResponse])
+def get_all_notes(
+    skip: int = 0,
+    limit: int = 100,
+    db: Session = Depends(get_db)
+):
+    """
+    Get all meeting notes (completed meetings with transcripts/summaries)
+    
+    This returns meetings that have finished and have note data available.
+    """
+    meetings = (
+        db.query(Meeting)
+        .filter(Meeting.status == MeetingStatus.DONE)
+        .order_by(Meeting.created_at.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+    return meetings
 
-@router.get("/{note_id}", response_model=NoteRead)
-async def read_note(note_id: int, note_service: NoteService = Depends(get_note_service)):
-    note = await note_service.get_note(note_id)
-    if not note:
-        raise HTTPException(status_code=404, detail="Note not found")
-    return note
 
-@router.get("/", response_model=List[NoteRead])
-async def read_notes(note_service: NoteService = Depends(get_note_service)):
-    notes = await note_service.get_all_notes()
-    return notes
+@router.get("/{meeting_id}", response_model=MeetingResponse)
+def get_note(meeting_id: int, db: Session = Depends(get_db)):
+    """
+    Get notes for a specific meeting
+    
+    Returns the transcript and AI-generated summary for the meeting.
+    """
+    meeting = db.query(Meeting).filter(Meeting.id == meeting_id).first()
+    
+    if not meeting:
+        raise HTTPException(status_code=404, detail="Meeting not found")
+    
+    return meeting
 
-@router.delete("/{note_id}", response_model=dict)
-async def delete_note(note_id: int, note_service: NoteService = Depends(get_note_service)):
-    success = await note_service.delete_note(note_id)
-    if not success:
-        raise HTTPException(status_code=404, detail="Note not found")
-    return {"detail": "Note deleted successfully"}
+
+@router.get("/meeting/{meeting_url:path}")
+def get_note_by_url(meeting_url: str, db: Session = Depends(get_db)):
+    """
+    Get notes for a meeting by its URL
+    
+    This is useful for looking up notes when you have the meeting link.
+    """
+    meeting = db.query(Meeting).filter(Meeting.meeting_url == meeting_url).first()
+    
+    if not meeting:
+        raise HTTPException(status_code=404, detail="Meeting not found")
+    
+    return meeting

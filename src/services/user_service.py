@@ -1,7 +1,8 @@
 from sqlalchemy.orm import Session
 from src.models.user import User
-from src.schemas.user import UserCreate, UserRead
+from src.schemas.user import UserCreate
 from typing import List, Optional
+
 
 class UserService:
     def __init__(self, db: Session):
